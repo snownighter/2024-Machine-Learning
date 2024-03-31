@@ -28,7 +28,7 @@ X_train, X_test, y_train, y_test = train_test_split(padded_sequences, labels, te
 
 # 建立情感分類模型
 model = tf.keras.models.Sequential()
-model.add(tf.keras.layers.Embedding(len(word_index) + 1, 32, input_length=max_sequence_length))
+model.add(tf.keras.layers.Embedding(len(word_index) + 1, 32))  # 移除 input_length 參數
 model.add(tf.keras.layers.LSTM(64, dropout=0.2, recurrent_dropout=0.2))
 model.add(tf.keras.layers.Dense(3, activation='softmax'))  # 3個類別: 正面、負面、中性
 
@@ -41,3 +41,22 @@ model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_test, y
 loss, accuracy = model.evaluate(X_test, y_test)
 print("Test Loss:", loss)
 print("Test Accuracy:", accuracy)
+
+# 測試模型
+while True:
+    text = input("Enter a text to classify its sentiment (or 'exit' to quit): ")
+    if text.lower() == 'exit':
+        break
+    else:
+        # 將輸入的文本轉換為序列
+        sequence = tokenizer.texts_to_sequences([text])
+        padded_sequence = tf.keras.preprocessing.sequence.pad_sequences(sequence, maxlen=max_sequence_length)
+        # 進行情感分類
+        result = model.predict(padded_sequence)
+        # 解析結果
+        if np.argmax(result) == 0:
+            print("Negative sentiment")
+        elif np.argmax(result) == 1:
+            print("Positive sentiment")
+        else:
+            print("Neutral sentiment")
